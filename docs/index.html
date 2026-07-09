@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Lyrics Vault</title>
+<meta name="theme-color" content="#8B5CF6" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-theme="dark">
+
+<div id="toast-stack"></div>
+
+<!-- ============================================================ LOGIN VIEW -->
+<div id="login-view">
+  <div class="auth-card glass">
+    <div class="auth-logo">🎵</div>
+    <h1 id="auth-title">Welcome back</h1>
+    <p class="sub" id="auth-sub">Sign in to your personal lyrics vault</p>
+    <div id="auth-error" class="auth-error hidden"></div>
+
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="Email" autocomplete="username" required />
+      <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" required />
+      <button type="submit" class="btn btn-primary" id="login-submit">Sign in</button>
+    </form>
+
+    <form id="reset-form" class="hidden">
+      <input type="email" id="reset-email" placeholder="Email" required />
+      <button type="submit" class="btn btn-primary">Send reset link</button>
+    </form>
+
+    <form id="newpass-form" class="hidden">
+      <input type="password" id="newpass-1" placeholder="New password" required />
+      <button type="submit" class="btn btn-primary">Update password</button>
+    </form>
+
+    <span class="auth-link" id="show-reset">Forgot password?</span>
+    <span class="auth-link hidden" id="show-login">Back to sign in</span>
+  </div>
+</div>
+
+<!-- ============================================================ APP VIEW -->
+<div id="app-view" class="hidden">
+
+  <aside class="sidebar glass">
+    <div class="brand"><span class="mark">🎵</span> Lyrics Vault</div>
+    <nav id="side-nav">
+      <div class="nav-item active" data-view="dashboard"><span class="n-icon">🏠</span> Dashboard</div>
+      <div class="nav-item" data-view="gallery"><span class="n-icon">🖼️</span> Gallery</div>
+      <div class="nav-item" data-view="favorites"><span class="n-icon">💜</span> Favorites <span class="nav-count" id="count-fav">0</span></div>
+      <div class="nav-item" data-view="collections"><span class="n-icon">📁</span> Collections</div>
+      <div class="nav-item" data-view="stats"><span class="n-icon">📊</span> Stats</div>
+      <div class="nav-item" data-view="archive"><span class="n-icon">🗑️</span> Archive</div>
+      <div class="nav-item" data-view="settings"><span class="n-icon">⚙️</span> Settings</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="theme-switch">
+        <button data-theme-choice="light">☀️</button>
+        <button data-theme-choice="dark" class="active">🌙</button>
+        <button data-theme-choice="auto">🖥️</button>
+      </div>
+      <button class="btn btn-ghost" id="logout-btn">↩ Log out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="search-wrap">
+        <span class="s-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search titles, artists, lyrics, notes... ( / )" />
+      </div>
+      <button class="btn btn-ghost" id="random-btn" title="Random lyric">🎲 Random</button>
+      <button class="btn btn-ghost hidden" id="select-mode-btn">☑ Select</button>
+    </div>
+
+    <!-- DASHBOARD / GALLERY / FAVORITES share this render target -->
+    <div id="view-collection">
+      <h1 class="view-title" id="collection-title">Dashboard</h1>
+      <p class="view-sub" id="collection-sub">Everything you've saved, newest first.</p>
+
+      <div class="filter-row" id="filter-row">
+        <div class="chip"><select id="filter-language"><option value="">Language</option></select></div>
+        <div class="chip"><select id="filter-genre"><option value="">Genre</option></select></div>
+        <div class="chip"><select id="filter-rating">
+          <option value="">Rating</option>
+          <option value="5">★★★★★</option><option value="4">★★★★+</option>
+          <option value="3">★★★+</option><option value="2">★★+</option><option value="1">★+</option>
+        </select></div>
+        <div class="chip"><select id="filter-sort">
+          <option value="recent">Recently added</option>
+          <option value="alpha">Alphabetical</option>
+          <option value="rating">Highest rated</option>
+        </select></div>
+        <div class="chip" id="chip-favorites">💜 Favorites only</div>
+        <div style="flex:1"></div>
+        <div class="chip"><select id="view-density">
+          <option value="">Grid</option>
+          <option value="size-lg">Large</option>
+          <option value="size-sm">Small</option>
+          <option value="list-view">List</option>
+        </select></div>
+      </div>
+
+      <div id="grid-target" class="grid"></div>
+    </div>
+
+    <!-- COLLECTIONS -->
+    <div id="view-collections" class="hidden">
+      <h1 class="view-title">Collections</h1>
+      <p class="view-sub">Folders for your lyrics — Tamil, Love Songs, Night Drive, whatever you like.</p>
+      <div class="filter-row" id="collections-list"></div>
+      <div id="collections-grid" class="grid"></div>
+    </div>
+
+    <!-- STATS -->
+    <div id="view-stats" class="hidden">
+      <h1 class="view-title">Statistics</h1>
+      <p class="view-sub">A quick look at your vault.</p>
+      <div class="stat-grid" id="stat-cards"></div>
+      <div class="glass" style="padding:18px; margin-bottom:18px;">
+        <h3 style="margin-top:0;">Uploads per month</h3>
+        <div class="bar-chart" id="monthly-chart"></div>
+      </div>
+      <div class="glass">
+        <h3 style="margin:0 0 0 16px; padding-top:16px;">Top tags</h3>
+        <div class="tag-cloud" id="top-tags"></div>
+      </div>
+    </div>
+
+    <!-- ARCHIVE -->
+    <div id="view-archive" class="hidden">
+      <h1 class="view-title">Archive</h1>
+      <p class="view-sub">Deleted lyrics stay here for 30 days before they can be removed for good.</p>
+      <div id="archive-grid" class="grid"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="view-settings" class="hidden">
+      <h1 class="view-title">Settings</h1>
+      <p class="view-sub">Backups and account.</p>
+      <div class="glass" style="padding:20px; max-width:480px; display:flex; flex-direction:column; gap:12px;">
+        <button class="btn btn-ghost" id="export-btn">⬇ Export vault as JSON</button>
+        <label class="btn btn-ghost" for="import-file" style="text-align:center;">⬆ Import JSON backup</label>
+        <input type="file" id="import-file" accept="application/json" class="hidden" />
+        <hr style="border-color: var(--glass-border); width:100%;" />
+        <span style="font-size:12.5px; color:var(--text-dim);" id="account-email"></span>
+        <span class="kbd-hint">Shortcuts: <kbd>/</kbd> search · <kbd>n</kbd> new lyric · <kbd>Esc</kbd> close</span>
+      </div>
+    </div>
+
+    <div id="empty-target"></div>
+  </main>
+
+  <button class="fab" id="fab-add" title="Add lyric (n)">＋</button>
+
+  <nav class="bottom-nav glass">
+    <div class="bn-item active" data-view="dashboard"><span class="icon">🏠</span>Home</div>
+    <div class="bn-item" data-view="gallery"><span class="icon">🖼️</span>Gallery</div>
+    <div class="bn-item" data-view="favorites"><span class="icon">💜</span>Favs</div>
+    <div class="bn-item" data-view="stats"><span class="icon">📊</span>Stats</div>
+    <div class="bn-item" data-view="settings"><span class="icon">⚙️</span>More</div>
+  </nav>
+
+  <div class="bulk-bar glass hidden" id="bulk-bar">
+    <span id="bulk-count">0 selected</span>
+    <button class="btn btn-ghost" id="bulk-tag-btn">🏷 Tag</button>
+    <button class="btn btn-danger" id="bulk-delete-btn">🗑 Delete</button>
+    <button class="btn btn-ghost" id="bulk-cancel-btn">Cancel</button>
+  </div>
+</div>
+
+<!-- ============================================================ ADD/EDIT MODAL -->
+<div id="editor-modal" class="modal-backdrop hidden">
+  <div class="modal modal-wide glass">
+    <button class="btn-icon modal-close" id="editor-close">✕</button>
+    <h2 id="editor-title">Add lyric</h2>
+    <form id="editor-form">
+      <div class="field full">
+        <label>Image</label>
+        <div class="dropzone" id="dropzone">
+          <div id="dropzone-hint">Drag & drop an image, click to browse, or use your camera</div>
+          <img id="image-preview" class="preview hidden" />
+        </div>
+        <input type="file" id="image-input" accept="image/*" class="hidden" />
+        <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" />
+        <div class="progress-bar hidden" id="ocr-progress"><div class="fill" id="ocr-progress-fill"></div></div>
+        <div class="progress-label hidden" id="ocr-progress-label"></div>
+        <div class="dup-warning hidden" id="dup-warning"></div>
+      </div>
+
+      <div class="form-grid" style="margin-top:14px;">
+        <div class="field full"><label>Title</label><input type="text" id="f-title" required /></div>
+        <div class="field"><label>Artist</label><input type="text" id="f-artist" /></div>
+        <div class="field"><label>Album</label><input type="text" id="f-album" /></div>
+        <div class="field"><label>Language</label><input type="text" id="f-language" placeholder="Tamil, English..." /></div>
+        <div class="field"><label>Genre</label><input type="text" id="f-genre" /></div>
+        <div class="field"><label>Mood</label><input type="text" id="f-mood" /></div>
+        <div class="field"><label>Rating</label>
+          <select id="f-rating">
+            <option value="0">No rating</option>
+            <option value="1">★</option><option value="2">★★</option><option value="3">★★★</option>
+            <option value="4">★★★★</option><option value="5">★★★★★</option>
+          </select>
+        </div>
+        <div class="field full"><label>Tags (comma separated)</label><input type="text" id="f-tags" placeholder="love, 2026, road-trip" /></div>
+        <div class="field full"><label>Collections (comma separated)</label><input type="text" id="f-collections" placeholder="Tamil, Night Drive" /></div>
+
+        <div class="field full">
+          <label>Extracted text (from OCR — edit freely)</label>
+          <textarea id="f-extracted" rows="6" placeholder="Run OCR by uploading an image, or paste/type lyrics manually"></textarea>
+          <button type="button" class="btn btn-ghost" id="rerun-ocr-btn" style="margin-top:8px; font-size:12px; padding:7px 14px;">↻ Re-run OCR</button>
+        </div>
+
+        <div class="field full">
+          <label>Notes</label>
+          <div class="rte-toolbar">
+            <button type="button" data-cmd="bold"><b>B</b></button>
+            <button type="button" data-cmd="italic"><i>I</i></button>
+            <button type="button" data-cmd="insertUnorderedList">•</button>
+            <button type="button" data-cmd="createLink">🔗</button>
+          </div>
+          <div class="rte-editable" id="f-notes" contenteditable="true"></div>
+        </div>
+
+        <div class="field">
+          <label>Favorite</label>
+          <button type="button" class="chip" id="f-favorite-toggle">🤍 Not favorite</button>
+        </div>
+        <div class="field">
+          <label>Pin to top</label>
+          <button type="button" class="chip" id="f-pin-toggle">📌 Not pinned</button>
+        </div>
+      </div>
+
+      <div class="detail-actions">
+        <button type="submit" class="btn btn-primary" id="editor-save">💾 Save</button>
+        <button type="button" class="btn btn-ghost" id="editor-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================ DETAIL MODAL -->
+<div id="detail-modal" class="modal-backdrop hidden">
+  <div class="modal modal-wide glass">
+    <button class="btn-icon modal-close" id="detail-close">✕</button>
+    <div class="detail-grid">
+      <div>
+        <div class="detail-img-wrap">
+          <img id="d-image" />
+        </div>
+        <div class="rating-stars" id="d-rating"></div>
+      </div>
+      <div>
+        <h2 id="d-title" style="margin-bottom:2px;"></h2>
+        <p style="color:var(--text-dim); margin:0 0 10px;" id="d-artist"></p>
+        <div class="detail-meta" id="d-meta"></div>
+        <div class="detail-text" id="d-text"></div>
+        <div id="d-notes" style="margin-top:10px; font-size:13.5px; color:var(--text-dim);"></div>
+        <div class="detail-actions">
+          <button class="btn btn-ghost" id="d-favorite">🤍 Favorite</button>
+          <button class="btn btn-ghost" id="d-edit">✎ Edit</button>
+          <button class="btn btn-ghost" id="d-download">⬇ Download</button>
+          <button class="btn btn-ghost" id="d-copy">📋 Copy lyrics</button>
+          <button class="btn btn-ghost" id="d-share">🔗 Share link</button>
+          <button class="btn btn-ghost" id="d-qr">▦ QR code</button>
+          <button class="btn btn-danger" id="d-delete">🗑 Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+<div id="confirm-modal" class="modal-backdrop hidden">
+  <div class="modal glass" style="max-width:360px; text-align:center;">
+    <p id="confirm-message" style="font-size:14.5px;">Are you sure?</p>
+    <div class="detail-actions" style="justify-content:center;">
+      <button class="btn btn-danger" id="confirm-yes">Yes, continue</button>
+      <button class="btn btn-ghost" id="confirm-no">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Prompt dialog (used for bulk tag, share, qr) -->
+<div id="info-modal" class="modal-backdrop hidden">
+  <div class="modal glass" style="max-width:400px;">
+    <button class="btn-icon modal-close" id="info-close">✕</button>
+    <h2 id="info-title">Info</h2>
+    <div id="info-body"></div>
+  </div>
+</div>
+
+<div id="fullscreen-viewer" class="fullscreen-img hidden"><img id="fullscreen-img-el" /></div>
+
+<!-- ============================================================ SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/ocr.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
